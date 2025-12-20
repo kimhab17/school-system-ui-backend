@@ -2,6 +2,8 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const multer = require("multer");
+const path = require("path");
 
 const router = express.Router();
 const JWT_SECRET = "school_secret_key"; // for university project
@@ -35,13 +37,26 @@ const authMiddleware = (req, res, next) => {
 };
 
 /* --------------------------------------------------
+   📸 MULTER CONFIG (UPLOAD PROFILE IMAGE)
+-------------------------------------------------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
+/* --------------------------------------------------
    📝 REGISTER
 -------------------------------------------------- */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // check duplicate email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -108,6 +123,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        profileImage: user.profileImage,
       },
     });
   } catch (err) {
@@ -121,7 +137,6 @@ router.post("/login", async (req, res) => {
 /* --------------------------------------------------
    👤 GET PROFILE (BY TOKEN)
    GET /auth/profile
-   Header: Authorization: Bearer TOKEN
 -------------------------------------------------- */
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
@@ -134,8 +149,49 @@ router.get("/profile", authMiddleware, async (req, res) => {
       });
     }
 
+    // 🔴 DEBUG (សំខាន់)
+    console.log("PROFILE USER:", user);
+
+    res.json(user); // ⬅️ return user DIRECTLY
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
+/* --------------------------------------------------
+   📤 UPLOAD PROFILE IMAGE
+   POST /auth/upload-profile
+-------------------------------------------------- */
+router.post("/upload-profile", upload.single("image"), async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No image uploaded",
+      });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      { profileImage: req.file.path },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
     res.json({
       success: true,
+      message: "Profile image uploaded successfully",
       user,
     });
   } catch (err) {

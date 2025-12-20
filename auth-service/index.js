@@ -6,8 +6,7 @@ const app = express();
 app.use(express.json());
 
 // 🔹 MongoDB Connection (Docker-friendly)
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://mongo:27017/school";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://mongo:27017/school";
 
 mongoose
   .connect(MONGO_URI)
@@ -21,10 +20,10 @@ mongoose
 
 // 🔹 Routes
 app.use("/auth", authRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // 🔹 Server
 const PORT = process.env.PORT || 4001;
 app.listen(PORT, () => {
   console.log(`🚀 Auth Service running on port ${PORT}`);
 });
-
