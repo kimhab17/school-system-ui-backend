@@ -37,9 +37,10 @@ services:
     ports:
       - "4002:4002"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/school
+      - MONGO_URI=mongodb://mongodb:27017/school
+      - JWT_SECRET=school_secret_key
     depends_on:
       - mongodb
-
+    
 volumes:
   mongo-data:
