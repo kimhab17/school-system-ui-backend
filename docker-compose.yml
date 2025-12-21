@@ -32,5 +32,14 @@ services:
     depends_on:
       - auth-service
 
+  exam-service:
+    build: ./exam-service
+    ports:
+      - "4002:4002"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/school
+    depends_on:
+      - mongodb
+
 volumes:
   mongo-data:

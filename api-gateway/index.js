@@ -1,14 +1,17 @@
 const express = require("express");
 const axios = require("axios");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
-app.use(express.json());
 
-// 🔹 Auth Service URL (Docker-friendly)
+// ✅ Parse JSON ONLY for auth routes
+app.use("/auth", express.json());
+
+// 🔹 Auth Service URL
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://auth-service:4001";
 
-// 🔹 AUTH ROUTES
+// 🔹 AUTH ROUTES (unchanged)
 app.use("/auth", async (req, res) => {
   try {
     const response = await axios({
@@ -30,6 +33,15 @@ app.use("/auth", async (req, res) => {
     });
   }
 });
+
+// ✅ EXAM ROUTES → DO NOT parse JSON here
+app.use(
+  "/exam",
+  createProxyMiddleware({
+    target: "http://exam-service:4002/exam",
+    changeOrigin: true,
+  })
+);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
