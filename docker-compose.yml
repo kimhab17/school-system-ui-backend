@@ -11,7 +11,6 @@ services:
 
   auth-service:
     build: ./auth-service
-    container_name: auth-service
     ports:
       - "4001:4001"
     environment:
@@ -19,28 +18,35 @@ services:
       - JWT_SECRET=school_secret_key
     depends_on:
       - mongodb
-    volumes:
-    - ./uploads:/app/uploads
-
-  api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    ports:
-      - "4000:4000"
-    environment:
-      - AUTH_SERVICE_URL=http://auth-service:4001
-    depends_on:
-      - auth-service
 
   exam-service:
     build: ./exam-service
     ports:
       - "4002:4002"
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/school
+      - MONGO_URI=mongodb://mongo:27017/school
       - JWT_SECRET=school_secret_key
     depends_on:
       - mongodb
-    
+
+  homework-service:
+    build: ./homework-service
+    ports:
+      - "4003:4003"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/school
+      - JWT_SECRET=school_secret_key
+    depends_on:
+      - mongodb
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "4000:4000"
+    depends_on:
+      - auth-service
+      - exam-service
+      - homework-service
+
 volumes:
   mongo-data:
