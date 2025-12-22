@@ -58,6 +58,19 @@ app.use(
   })
 );
 
+app.use(
+  "/homework",
+  createProxyMiddleware({
+    target: "http://homework-service:4003/homework/*",
+    changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader("authorization", req.headers.authorization);
+      }
+    },
+  })
+);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 API Gateway running on port ${PORT}`);
