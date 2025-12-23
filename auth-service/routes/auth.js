@@ -55,7 +55,7 @@ const upload = multer({ storage });
 -------------------------------------------------- */
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, className } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -72,6 +72,8 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      // ✅ only student has className
+      className: role === "student" ? className : null,
     });
 
     await user.save();
@@ -124,6 +126,8 @@ router.post("/login", async (req, res) => {
         email: user.email,
         role: user.role,
         profileImage: user.profileImage,
+        // ✅ ADD THIS
+        className: user.className,
       },
     });
   } catch (err) {

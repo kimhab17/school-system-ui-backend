@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
       enum: ["teacher", "student", "admin"],
       default: "student",
     },
+    // ✅ ADD THIS
+    className: {
+      type: String,
+      default: null, // teacher/admin = null
+    },
     profileImage: String,
   },
   { timestamps: true }
