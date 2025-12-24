@@ -10,6 +10,6 @@ mongoose
   .then(() => console.log("Exam DB connected"));
 
 app.use("/exam", examRoutes);
-
+//  Hahahahahahahaha
 const PORT = 4002;
 app.listen(PORT, () => console.log(`Exam service running on port ${PORT}`));
