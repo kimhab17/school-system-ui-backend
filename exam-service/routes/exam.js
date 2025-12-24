@@ -42,4 +42,20 @@ router.get("/teacher", auth, async (req, res) => {
   }
 });
 
+// GET ALL exams (for students)
+router.get("/", auth, async (req, res) => {
+  try {
+    const exams = await Exam.find();
+    res.json({
+      success: true,
+      data: exams,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+});
+
 module.exports = router;
