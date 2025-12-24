@@ -1,0 +1,38 @@
+name: API Gateway CI
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "api-gateway/**"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd api-gateway
+          npm install
+
+      - name: Build Docker image
+        run: |
+          docker build -t kdamprai10/api-gateway:latest ./api-gateway
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker push kdamprai10/api-gateway:latest
