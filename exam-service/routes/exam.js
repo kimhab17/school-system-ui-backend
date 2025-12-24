@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Exam = require("../models/Exam"); // ✅ FIX
 const auth = require("../middleware/auth");
+const ExamSubmission = require("../models/ExamSubmission");
 
 // CREATE EXAM (from token)
 router.post("/create", auth, async (req, res) => {
@@ -56,6 +57,25 @@ router.get("/", auth, async (req, res) => {
       message: err.message,
     });
   }
+});
+
+/* --------------------------------------------------
+   📝 SUBMIT EXAM (STUDENT ONLY)
+-------------------------------------------------- */
+router.post("/submit", auth, async (req, res) => {
+  // 🔴 THIS WAS FAILING BEFORE
+  if (req.user.role !== "student") {
+    return res.status(403).json({
+      success: false,
+      message: "Only students can submit exam",
+    });
+  }
+
+  // ✅ Example submit logic
+  res.json({
+    success: true,
+    message: "Exam submitted successfully",
+  });
 });
 
 module.exports = router;

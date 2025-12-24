@@ -6,27 +6,32 @@ const multer = require("multer");
 const path = require("path");
 
 const router = express.Router();
-const JWT_SECRET = "school_secret_key"; // for university project
+const JWT_SECRET = "school_secret_key";
 
 /* --------------------------------------------------
-   🔐 AUTH MIDDLEWARE (VERIFY TOKEN)
+   🔐 AUTH MIDDLEWARE (STANDARDIZED ✅)
 -------------------------------------------------- */
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       success: false,
       message: "No token provided",
     });
   }
 
-  const token = authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.userId = decoded.id;
-    req.role = decoded.role;
+
+    // ✅ STANDARD FORMAT (VERY IMPORTANT)
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+    };
+
     next();
   } catch (err) {
     return res.status(401).json({
@@ -37,15 +42,12 @@ const authMiddleware = (req, res, next) => {
 };
 
 /* --------------------------------------------------
-   📸 MULTER CONFIG (UPLOAD PROFILE IMAGE)
+   📸 MULTER CONFIG
 -------------------------------------------------- */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
 });
 
 const upload = multer({ storage });
@@ -56,6 +58,13 @@ const upload = multer({ storage });
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, role, className } = req.body;
+
+    if (role === "student" && !className) {
+      return res.status(400).json({
+        success: false,
+        message: "className is required for student",
+      });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -72,7 +81,6 @@ router.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      // ✅ only student has className
       className: role === "student" ? className : null,
     });
 
@@ -113,9 +121,14 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role, // ✅ IMPORTANT
+      },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.json({
       success: true,
@@ -125,8 +138,6 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profileImage: user.profileImage,
-        // ✅ ADD THIS
         className: user.className,
       },
     });
@@ -139,12 +150,11 @@ router.post("/login", async (req, res) => {
 });
 
 /* --------------------------------------------------
-   👤 GET PROFILE (BY TOKEN)
-   GET /auth/profile
+   👤 GET PROFILE
 -------------------------------------------------- */
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -153,10 +163,10 @@ router.get("/profile", authMiddleware, async (req, res) => {
       });
     }
 
-    // 🔴 DEBUG (សំខាន់)
-    console.log("PROFILE USER:", user);
-
-    res.json(user); // ⬅️ return user DIRECTLY
+    res.json({
+      success: true,
+      user,
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -167,7 +177,6 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
 /* --------------------------------------------------
    📤 UPLOAD PROFILE IMAGE
-   POST /auth/upload-profile
 -------------------------------------------------- */
 router.post("/upload-profile", upload.single("image"), async (req, res) => {
   try {
@@ -195,7 +204,6 @@ router.post("/upload-profile", upload.single("image"), async (req, res) => {
 
     res.json({
       success: true,
-      message: "Profile image uploaded successfully",
       user,
     });
   } catch (err) {

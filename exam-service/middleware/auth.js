@@ -15,9 +15,10 @@ module.exports = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 🔥 IMPORTANT: normalize user id
+    // ✅ FIX: include role
     req.user = {
       id: decoded.id || decoded._id,
+      role: decoded.role, // 🔥 THIS WAS MISSING
     };
 
     next();
