@@ -7,12 +7,11 @@ const app = express();
 // Parse JSON only for auth
 app.use("/auth", express.json());
 
-// ================= ENV (REQUIRED) =================
+// ================= ENV =================
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 const EXAM_SERVICE_URL = process.env.EXAM_SERVICE_URL;
 const HOMEWORK_SERVICE_URL = process.env.HOMEWORK_SERVICE_URL;
 
-// Safety check (important)
 if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
   console.error("❌ Missing service URLs in environment variables");
   process.exit(1);
@@ -23,7 +22,7 @@ app.use("/auth", async (req, res) => {
   try {
     const response = await axios({
       method: req.method,
-      url: `${AUTH_SERVICE_URL}/auth${req.originalUrl.replace("/auth", "")}`,
+      url: `${AUTH_SERVICE_URL}${req.originalUrl}`, // 👈 IMPORTANT
       data: req.body,
       headers: {
         authorization: req.headers.authorization || "",
@@ -46,11 +45,6 @@ app.use(
   createProxyMiddleware({
     target: EXAM_SERVICE_URL,
     changeOrigin: true,
-    onProxyReq(proxyReq, req) {
-      if (req.headers.authorization) {
-        proxyReq.setHeader("authorization", req.headers.authorization);
-      }
-    },
   })
 );
 
@@ -60,11 +54,6 @@ app.use(
   createProxyMiddleware({
     target: HOMEWORK_SERVICE_URL,
     changeOrigin: true,
-    onProxyReq(proxyReq, req) {
-      if (req.headers.authorization) {
-        proxyReq.setHeader("authorization", req.headers.authorization);
-      }
-    },
   })
 );
 
