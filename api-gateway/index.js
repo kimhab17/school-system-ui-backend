@@ -9,7 +9,8 @@ app.use("/auth", express.json());
 
 // ================= ENV =================
 const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL || "https://auth-service.onrender.com";
+  process.env.AUTH_SERVICE_URL ||
+  "https://https://school-system-ui-backend-1.onrender.com";
 
 const EXAM_SERVICE_URL =
   process.env.EXAM_SERVICE_URL || "https://exam-service.onrender.com";
