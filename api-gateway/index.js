@@ -7,7 +7,6 @@ const app = express();
 // ✅ Parse JSON ONLY for auth routes
 app.use("/auth", express.json());
 
-// Hahahahahahahaha
 // 🔹 Auth Service URL
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://auth-service:4001";

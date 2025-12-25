@@ -1,13 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const examRoutes = require("./routes/exam");
-
 const app = express();
 app.use(express.json());
+require("dotenv").config();
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("Exam DB connected"));
+  .then(() => console.log("Exam DB connected"))
+  .catch((err) => console.error(err));
 
 app.use("/exam", examRoutes);
 //  Hahahahahahahaha

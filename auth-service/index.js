@@ -6,18 +6,12 @@ const app = express();
 app.use(express.json());
 
 // 🔹 MongoDB Connection (Docker-friendly)
-const MONGO_URI = process.env.MONGO_URI || "mongodb://mongo:27017/school";
+require("dotenv").config();
 
 mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
-  });
-// teast CI
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Auth DB connected"))
+  .catch((err) => console.error(err));
 // 🔹 Routes
 app.use("/auth", authRoutes);
 app.use("/uploads", express.static("uploads"));
