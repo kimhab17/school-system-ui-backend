@@ -4,19 +4,19 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
 
-// ✅ Parse JSON ONLY for auth
+// Parse JSON only for auth
 app.use("/auth", express.json());
 
-// ================= ENV =================
-const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL ||
-  "https://https://school-system-ui-backend-1.onrender.com";
+// ================= ENV (REQUIRED) =================
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const EXAM_SERVICE_URL = process.env.EXAM_SERVICE_URL;
+const HOMEWORK_SERVICE_URL = process.env.HOMEWORK_SERVICE_URL;
 
-const EXAM_SERVICE_URL =
-  process.env.EXAM_SERVICE_URL || "https://exam-service.onrender.com";
-
-const HOMEWORK_SERVICE_URL =
-  process.env.HOMEWORK_SERVICE_URL || "https://homework-service.onrender.com";
+// Safety check (important)
+if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
+  console.error("❌ Missing service URLs in environment variables");
+  process.exit(1);
+}
 
 // ================= AUTH =================
 app.use("/auth", async (req, res) => {
@@ -32,8 +32,7 @@ app.use("/auth", async (req, res) => {
 
     res.status(response.status).json(response.data);
   } catch (err) {
-    console.error("Gateway error:", err.message);
-
+    console.error("AUTH GATEWAY ERROR:", err.message);
     res.status(err.response?.status || 500).json({
       success: false,
       message: err.response?.data?.message || err.message,
@@ -47,10 +46,7 @@ app.use(
   createProxyMiddleware({
     target: EXAM_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      "^/exam": "/exam",
-    },
-    onProxyReq: (proxyReq, req) => {
+    onProxyReq(proxyReq, req) {
       if (req.headers.authorization) {
         proxyReq.setHeader("authorization", req.headers.authorization);
       }
@@ -64,10 +60,7 @@ app.use(
   createProxyMiddleware({
     target: HOMEWORK_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      "^/homework": "/homework",
-    },
-    onProxyReq: (proxyReq, req) => {
+    onProxyReq(proxyReq, req) {
       if (req.headers.authorization) {
         proxyReq.setHeader("authorization", req.headers.authorization);
       }
@@ -76,7 +69,7 @@ app.use(
 );
 
 // ================= SERVER =================
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 API Gateway running on port ${PORT}`);
 });
