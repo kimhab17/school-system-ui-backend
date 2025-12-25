@@ -4,14 +4,20 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
 
-// ✅ Parse JSON ONLY for auth routes
+// ✅ Parse JSON ONLY for auth
 app.use("/auth", express.json());
 
-// 🔹 Auth Service URL
+// ================= ENV =================
 const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL || "http://auth-service:4001";
+  process.env.AUTH_SERVICE_URL || "https://auth-service.onrender.com";
 
-// 🔹 AUTH ROUTES (unchanged)
+const EXAM_SERVICE_URL =
+  process.env.EXAM_SERVICE_URL || "https://exam-service.onrender.com";
+
+const HOMEWORK_SERVICE_URL =
+  process.env.HOMEWORK_SERVICE_URL || "https://homework-service.onrender.com";
+
+// ================= AUTH =================
 app.use("/auth", async (req, res) => {
   try {
     const response = await axios({
@@ -34,22 +40,15 @@ app.use("/auth", async (req, res) => {
   }
 });
 
-// ✅ EXAM ROUTES → DO NOT parse JSON here
+// ================= EXAM =================
 app.use(
   "/exam",
   createProxyMiddleware({
-    target: "http://exam-service:4002/exam",
+    target: EXAM_SERVICE_URL,
     changeOrigin: true,
-  })
-);
-
-// homework
-/* ✅ HOMEWORK */
-app.use(
-  "/homework",
-  createProxyMiddleware({
-    target: "http://homework-service:4003/homework",
-    changeOrigin: true,
+    pathRewrite: {
+      "^/exam": "/exam",
+    },
     onProxyReq: (proxyReq, req) => {
       if (req.headers.authorization) {
         proxyReq.setHeader("authorization", req.headers.authorization);
@@ -58,11 +57,15 @@ app.use(
   })
 );
 
+// ================= HOMEWORK =================
 app.use(
   "/homework",
   createProxyMiddleware({
-    target: "http://homework-service:4003/homework",
+    target: HOMEWORK_SERVICE_URL,
     changeOrigin: true,
+    pathRewrite: {
+      "^/homework": "/homework",
+    },
     onProxyReq: (proxyReq, req) => {
       if (req.headers.authorization) {
         proxyReq.setHeader("authorization", req.headers.authorization);
@@ -71,19 +74,7 @@ app.use(
   })
 );
 
-app.use(
-  "/homework",
-  createProxyMiddleware({
-    target: "http://homework-service:4003",
-    changeOrigin: true,
-    onProxyReq: (proxyReq, req) => {
-      if (req.headers.authorization) {
-        proxyReq.setHeader("authorization", req.headers.authorization);
-      }
-    },
-  })
-);
-
+// ================= SERVER =================
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 API Gateway running on port ${PORT}`);
