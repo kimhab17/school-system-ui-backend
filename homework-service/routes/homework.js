@@ -49,27 +49,6 @@ router.get("/teacher", auth, async (req, res) => {
 });
 
 /**
- * GET HOMEWORK BY ID
- */
-router.get("/teacher", auth, async (req, res) => {
-  try {
-    const homework = await Homework.find({
-      teacherId: req.user.id, // 👈 from JWT
-    }).sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      data: homework,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
-  }
-});
-
-/**
  * ✅ GET ONE HOMEWORK BY ID (ANY STRING / ObjectId)
  */
 router.get("/:id", auth, async (req, res) => {

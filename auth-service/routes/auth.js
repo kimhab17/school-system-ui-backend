@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 
 const router = express.Router();
-const JWT_SECRET = "school_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /* --------------------------------------------------
    🔐 AUTH MIDDLEWARE (STANDARDIZED ✅)
@@ -45,7 +45,7 @@ const authMiddleware = (req, res, next) => {
    📸 MULTER CONFIG
 -------------------------------------------------- */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, "/tmp"),
   filename: (req, file, cb) =>
     cb(null, Date.now() + path.extname(file.originalname)),
 });
