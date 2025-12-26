@@ -17,7 +17,7 @@ app.use("/auth", authRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // 🔹 Server
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Auth Service running on port ${PORT}`);
+  console.log("Auth service running on", PORT);
 });
