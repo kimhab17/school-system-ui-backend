@@ -12,5 +12,7 @@ mongoose
 
 app.use("/homework", homeworkRoutes);
 
-const PORT = 4003;
-app.listen(PORT, () => console.log(`Homework service running on port ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log("Service running on", PORT);
+});

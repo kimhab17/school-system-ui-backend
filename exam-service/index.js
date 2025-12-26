@@ -12,5 +12,7 @@ mongoose
 
 app.use("/exam", examRoutes);
 
-const PORT = 4002;
-app.listen(PORT, () => console.log(`Exam service running on port ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log("Service running on", PORT);
+});
