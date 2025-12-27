@@ -18,28 +18,24 @@ if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
 }
 
 // ================= AUTH (AXIOS) =================
-app.use("/auth", async (req, res) => {
-  try {
-    const response = await axios({
-      method: req.method,
-      url: `${AUTH_SERVICE_URL}${req.originalUrl}`,
-      data: req.body,
-      headers: {
-        authorization: req.headers.authorization || "",
-      },
-      timeout: 10000,
-    });
-
-    return res.status(response.status).json(response.data);
-  } catch (err) {
-    console.error("AUTH GATEWAY ERROR:", err.message);
-    return res.status(502).json({
-      success: false,
-      message: "Auth service unavailable",
-    });
-  }
-});
-
+app.use(
+  "/auth",
+  createProxyMiddleware({
+    target: AUTH_SERVICE_URL,
+    changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader("Authorization", req.headers.authorization);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error("AUTH PROXY ERROR:", err.message);
+      res
+        .status(502)
+        .json({ success: false, message: "Auth service unavailable" });
+    },
+  })
+);
 // ================= EXAM =================
 app.use(
   "/exam",
