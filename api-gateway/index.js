@@ -13,6 +13,13 @@ if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
   process.exit(1);
 }
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API Gateway is running",
+  });
+});
+
 // AUTH
 app.use(
   "/auth",
