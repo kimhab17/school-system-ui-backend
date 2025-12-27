@@ -17,9 +17,9 @@ if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
 app.use(
   "/auth",
   createProxyMiddleware({
-    target: AUTH_SERVICE_URL,
+    target: `${AUTH_SERVICE_URL}/auth`,
     changeOrigin: true,
-    pathRewrite: { "^/auth": "/auth" },
+    pathRewrite: { "^/auth": "" },
   })
 );
 
@@ -27,9 +27,9 @@ app.use(
 app.use(
   "/exam",
   createProxyMiddleware({
-    target: EXAM_SERVICE_URL,
+    target: `${EXAM_SERVICE_URL}/exam`,
     changeOrigin: true,
-    pathRewrite: { "^/exam": "/exam" },
+    pathRewrite: { "^/exam": "" },
   })
 );
 
@@ -37,9 +37,9 @@ app.use(
 app.use(
   "/homework",
   createProxyMiddleware({
-    target: HOMEWORK_SERVICE_URL,
+    target: `${HOMEWORK_SERVICE_URL}/homework`,
     changeOrigin: true,
-    pathRewrite: { "^/homework": "/homework" },
+    pathRewrite: { "^/homework": "" },
   })
 );
 
