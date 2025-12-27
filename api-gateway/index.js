@@ -4,8 +4,8 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
 
-// Parse JSON only for auth
-app.use("/auth", express.json());
+/* 🔥 FIX #1: parse JSON globally */
+app.use(express.json());
 
 // ================= ENV =================
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
@@ -17,24 +17,25 @@ if (!AUTH_SERVICE_URL || !EXAM_SERVICE_URL || !HOMEWORK_SERVICE_URL) {
   process.exit(1);
 }
 
-// ================= AUTH =================
+// ================= AUTH (AXIOS) =================
 app.use("/auth", async (req, res) => {
   try {
     const response = await axios({
       method: req.method,
-      url: `${AUTH_SERVICE_URL}${req.originalUrl}`, // 👈 IMPORTANT
+      url: `${AUTH_SERVICE_URL}${req.originalUrl}`,
       data: req.body,
       headers: {
         authorization: req.headers.authorization || "",
       },
+      timeout: 10000,
     });
 
-    res.status(response.status).json(response.data);
+    return res.status(response.status).json(response.data);
   } catch (err) {
     console.error("AUTH GATEWAY ERROR:", err.message);
-    res.status(err.response?.status || 500).json({
+    return res.status(502).json({
       success: false,
-      message: err.response?.data?.message || err.message,
+      message: "Auth service unavailable",
     });
   }
 });
@@ -45,6 +46,17 @@ app.use(
   createProxyMiddleware({
     target: EXAM_SERVICE_URL,
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader("Authorization", req.headers.authorization);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error("EXAM PROXY ERROR:", err.message);
+      res
+        .status(502)
+        .json({ success: false, message: "Exam service unavailable" });
+    },
   })
 );
 
@@ -54,6 +66,17 @@ app.use(
   createProxyMiddleware({
     target: HOMEWORK_SERVICE_URL,
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.headers.authorization) {
+        proxyReq.setHeader("Authorization", req.headers.authorization);
+      }
+    },
+    onError: (err, req, res) => {
+      console.error("HOMEWORK PROXY ERROR:", err.message);
+      res
+        .status(502)
+        .json({ success: false, message: "Homework service unavailable" });
+    },
   })
 );
 
